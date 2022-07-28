@@ -55,12 +55,14 @@ def run(args):
         n_hvgs=args.n_hvgs,
         metrics=args.metrics,
         thresh_methods=args.thresh_methods,
+        manualthresh=args.manualthresh,
         directions=args.directions,
         alphas=args.alphas,
         max_iter=args.n_iter,
         n_jobs=args.n_jobs,
         seed=args.seed,
         verbose=args.verbose,
+        multimanual=args.multimanual
     )
     # save new labels in .h5ad
     if args.verbose:
@@ -181,12 +183,26 @@ def main():
         default=["multiotsu"],
     )
     run_parser.add_argument(
+        "--manualthresh",
+        required=False,
+        type=str,
+        help="Manual thresholds for each heuristic in '--metrics'.",
+        nargs="+",
+        default=["6,8"],
+    )
+    run_parser.add_argument(
         "--directions",
         required=False,
         type=str,
         help="Direction of thresholding for each heuristic in '--metrics'.",
         nargs="+",
         default=["above"],
+    )
+    run_parser.add_argument(
+        "--multimanual",
+        required=False,
+        help="Use manual trinary thresholds",
+        action="store_true",
     )
     run_parser.add_argument(
         "--n-hvgs",

@@ -35,7 +35,7 @@ def recipe_dropkick(
     target_sum=None,
     n_hvgs=2000,
     X_final="raw_counts",
-    verbose=True,
+    verbose=True
 ):
     """
     dropkick preprocessing recipe
@@ -184,6 +184,8 @@ def auto_thresh_obs(
     obs_cols=["arcsinh_n_genes_by_counts"],
     methods=["multiotsu"],
     directions=["above"],
+    manualthresh=["6,8"],
+    multimanual=False
 ):
     """
     Automated thresholding on metrics in `adata.obs`
@@ -216,14 +218,20 @@ def auto_thresh_obs(
         methods = [methods]
     if isinstance(directions, str):
         methods = [directions]
+    if isinstance(manualthresh, str):
+        manualthresh = [manualthresh]
     # initiate output dictionary
     thresholds = dict.fromkeys(obs_cols)
     # add thresholds as subkey
     for i in range(len(obs_cols)):
         thresholds[obs_cols[i]] = {}  # initiate empty dict
         tmp = np.array(adata.obs[obs_cols[i]])  # grab values to threshold
+        tmp2 = np.array(list((map(float, manualthresh[i].split(",")))))
         if methods[i] == "multiotsu":
-            thresholds[obs_cols[i]]["thresh"] = threshold_multiotsu(tmp)
+            if multimanual:
+                thresholds[obs_cols[i]]["thresh"] = tmp2
+            else:
+                thresholds[obs_cols[i]]["thresh"] = threshold_multiotsu(tmp)
         elif methods[i] == "otsu":
             thresholds[obs_cols[i]]["thresh"] = threshold_otsu(tmp)
         elif methods[i] == "li":
@@ -474,6 +482,8 @@ def dropkick(
     n_jobs=2,
     seed=18,
     verbose=True,
+    multimanual=False,
+    manualthresh=["6,8"]
 ):
     """
     Generates logistic regression model of cell quality
@@ -548,7 +558,7 @@ def dropkick(
     if isinstance(directions, str):
         directions = [directions]
     adata_thresh = auto_thresh_obs(
-        a, methods=thresh_methods, obs_cols=metrics, directions=directions
+        a, methods=thresh_methods, obs_cols=metrics, directions=directions, multimanual=multimanual, manualthresh=manualthresh
     )
 
     # 2) create labels from combination of thresholds
